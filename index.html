@@ -1,188 +1,188 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>家計簿正方形メーカー</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <style>
-        :root { --main-bg: #fdf5e6; --accent: #d2b48c; }
-        body { font-family: sans-serif; background: #eee; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
-        
-        .container { display: flex; flex-direction: row; gap: 20px; max-width: 1200px; width: 100%; padding: 20px; box-sizing: border-box; justify-content: center; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家計簿正方形メーカー</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root { --main-bg: #fdf5e6; --accent: #d2b48c; }
+body { font-family: sans-serif; background: #eee; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
 
-        @media (max-width: 900px) {
-            .container { flex-direction: column; align-items: center; padding: 10px; }
-            .preview-area { order: -1; position: static !important; width: 100% !important; display: flex; flex-direction: column; align-items: center; }
-            #capture-target { width: 95vw !important; height: 95vw !important; max-width: 500px; max-height: 500px; }
-            .editor { width: 100%; height: auto !important; }
-        }
-        
-        .editor { flex: 1; background: white; padding: 20px; border-radius: 10px; height: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .input-section { margin-bottom: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; }
-        .input-section h4 { margin: 10px 0; font-size: 16px; color: var(--accent); }
-        
-        .input-group { display: flex; align-items: center; margin-bottom: 8px; gap: 5px; }
-        .label-edit { width: 110px; font-size: 14px; border: 1px dashed #ccc; padding: 5px; border-radius: 4px; }
-        input[type="number"] { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; background: #fafafa; }
+.container { display: flex; flex-direction: row; gap: 20px; max-width: 1200px; width: 100%; padding: 20px; box-sizing: border-box; justify-content: center; }
 
-        .preview-area { flex: 0 0 500px; position: sticky; top: 10px; height: fit-content; }
-        
-        .ad-top { width: 100%; text-align: center; margin-bottom: 15px; }
-        .ad-middle { margin: 30px 0; text-align: center; border-top: 1px solid #eee; padding-top: 20px; min-height: 250px; }
+@media (max-width: 900px) {
+.container { flex-direction: column; align-items: center; padding: 10px; }
+.preview-area { order: -1; position: static !important; width: 100% !important; display: flex; flex-direction: column; align-items: center; }
+#capture-target { width: 95vw !important; height: 95vw !important; max-width: 500px; max-height: 500px; }
+.editor { width: 100%; height: auto !important; }
+}
 
-        #capture-target {
-            width: 500px; height: 500px;
-            background: var(--main-bg); padding: 0 20px 10px 20px;
-            border: 10px solid var(--accent); color: #333;
-            display: flex; flex-direction: column; box-sizing: border-box; position: relative;
-        }
-        
-        /* ✨ 隙間をなくすための調整 */
-        .header-container { display: flex; justify-content: center; margin-top: -1px; } /* -1pxで外枠と密着させます */
-        .header { background-color: var(--accent); color: white; padding: 4px 40px; border-radius: 0 0 50px 50px; font-size: 17px; font-weight: bold; display: inline-block; line-height: 1; }
-        
-        .main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; flex-grow: 1; align-content: space-evenly; overflow: hidden; }
-        .section-title { font-weight: bold; margin: 3px 0 1px 0; color: #444; border-bottom: 1px solid var(--accent); }
-        .item { display: flex; border-bottom: 1px dotted #ccc; margin-bottom: 1px; align-items: baseline; line-height: 1.1; }
-        .item-label { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .item-value { width: 66px; text-align: right; font-weight: bold; }
-        .unit { width: 15px; text-align: right; margin-left: 2px; }
+.editor { flex: 1; background: white; padding: 20px; border-radius: 10px; height: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+.input-section { margin-bottom: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; }
+.input-section h4 { margin: 10px 0; font-size: 16px; color: var(--accent); }
 
-        .total-box { text-align: right; font-weight: bold; border-top: 1px solid var(--accent); margin-top: 1px; }
-        .highlight { background-color: rgba(210, 180, 140, 0.2); }
+.input-group { display: flex; align-items: center; margin-bottom: 8px; gap: 5px; }
+.label-edit { width: 110px; font-size: 14px; border: 1px dashed #ccc; padding: 5px; border-radius: 4px; }
+input[type="number"] { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; background: #fafafa; }
 
-        .save-btn { margin: 15px 0; padding: 18px; background: #ff9800; color: white; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; width: 100%; font-weight: bold; }
+.preview-area { flex: 0 0 500px; position: sticky; top: 10px; height: fit-content; }
 
-        #ad-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); color: white; z-index: 9999;
-            flex-direction: column; align-items: center; justify-content: center; text-align: center;
-        }
-        .ad-modal { background: white; padding: 20px; border-radius: 15px; color: #333; max-width: 90%; }
-        #download-link { display: none; margin-top: 20px; padding: 15px 30px; background: #4CAF50; color: white; text-decoration: none; border-radius: 50px; font-weight: bold; }
-        .ad-frame { margin: 20px 0; min-height: 100px; border: 1px dashed #ccc; display: flex; align-items: center; justify-content: center; background: #f9f9f9; overflow: hidden; }
-    </style>
+/* ✨ 広告エリア2（プレビュー上部）の高さを160pxに合わせて拡張 */
+.ad-top { width: 100%; text-align: center; margin-bottom: 15px; min-height: 160px; }
+.ad-middle { margin: 30px 0; text-align: center; border-top: 1px solid #eee; padding-top: 20px; min-height: 250px; }
+
+#capture-target {
+width: 500px; height: 500px;
+background: var(--main-bg); padding: 5px 20px 10px 20px;
+border: 10px solid var(--accent); color: #333;
+display: flex; flex-direction: column; box-sizing: border-box; position: relative;
+}
+
+.header-container { display: flex; justify-content: center; margin-top: -1px; }
+.header { background-color: var(--accent); color: white; padding: 4px 40px; border-radius: 0 0 50px 50px; font-size: 17px; font-weight: bold; display: inline-block; line-height: 1; }
+
+.main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; flex-grow: 1; align-content: space-evenly; overflow: hidden; }
+.section-title { font-weight: bold; margin: 2px 0 1px 0; color: #444; border-bottom: 1px solid var(--accent); }
+.item { display: flex; border-bottom: 1px dotted #ccc; margin-bottom: 1px; align-items: baseline; line-height: 1.1; }
+.item-label { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item-value { width: 66px; text-align: right; font-weight: bold; }
+.unit { width: 15px; text-align: right; margin-left: 2px; }
+
+.total-box { text-align: right; font-weight: bold; border-top: 1px solid var(--accent); margin-top: 1px; }
+.highlight { background-color: rgba(210, 180, 140, 0.2); }
+
+.save-btn { margin: 15px 0; padding: 18px; background: #ff9800; color: white; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; width: 100%; font-weight: bold; }
+
+#ad-overlay {
+display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+background: rgba(0,0,0,0.85); color: white; z-index: 9999;
+flex-direction: column; align-items: center; justify-content: center; text-align: center;
+}
+.ad-modal { background: white; padding: 20px; border-radius: 15px; color: #333; max-width: 90%; }
+#download-link { display: none; margin-top: 20px; padding: 15px 30px; background: #4CAF50; color: white; text-decoration: none; border-radius: 50px; font-weight: bold; }
+.ad-frame { margin: 20px 0; min-height: 100px; border: 1px dashed #ccc; display: flex; align-items: center; justify-content: center; background: #f9f9f9; overflow: hidden; }
+</style>
 </head>
 <body>
 
 <div id="ad-overlay">
-    <div class="ad-modal">
-        <h3 id="wait-message">画像を生成中です... (3)</h3>
-        <div class="ad-frame">
-             <a href="https://hb.afl.rakuten.co.jp/hsc/50edd1fa.c1470e1a.1d15c8bf.8513ff13/?link_type=pict&ut=eyJwYWdlIjoic2hvcCIsInR5cGUiOiJwaWN0IiwiY29sIjoxLCJjYXQiOiI1OCIsImJhbiI6MzIzMDk1MSwiYW1wIjpmYWxzZX0%3D" target="_blank" rel="nofollow sponsored noopener" style="word-wrap:break-word;"><img src="https://hbb.afl.rakuten.co.jp/hsb/50edd1fa.c1470e1a.1d15c8bf.8513ff13/?me_id=1&me_adv_id=3230951&t=pict" border="0" style="margin:2px" alt="" title=""></a>
-        </div>
-        <a id="download-link" href="#" onclick="closeOverlay()">💾 画像をダウンロードする</a>
-    </div>
+<div class="ad-modal">
+<h3 id="wait-message">画像を生成中です... (3)</h3>
+<div class="ad-frame">
+<a href="https://hb.afl.rakuten.co.jp/hsc/50edd1fa.c1470e1a.1d15c8bf.8513ff13/?link_type=pict&ut=eyJwYWdlIjoic2hvcCIsInR5cGUiOiJwaWN0IiwiY29sIjoxLCJjYXQiOiI1OCIsImJhbiI6MzIzMDk1MSwiYW1wIjpmYWxzZX0%3D" target="_blank" rel="nofollow sponsored noopener" style="word-wrap:break-word;"><img src="https://hbb.afl.rakuten.co.jp/hsb/50edd1fa.c1470e1a.1d15c8bf.8513ff13/?me_id=1&me_adv_id=3230951&t=pict" border="0" style="margin:2px" alt="" title=""></a>
+</div>
+<a id="download-link" href="#" onclick="closeOverlay()">💾 画像をダウンロードする</a>
+</div>
 </div>
 
 <div class="container">
-    <div class="preview-area">
-        <div class="ad-top">
-            <div style="margin:0 auto; width:320px; height:48px;">
-                <script type="text/javascript">rakuten_design="slide";rakuten_affiliateId="1c99e670.cf181504.1c99e671.3773ee9b";rakuten_items="ranking";rakuten_genreId="0";rakuten_size="320x48";rakuten_target="_blank";rakuten_theme="gray";rakuten_border="off";rakuten_auto_mode="on";rakuten_genre_title="off";rakuten_recommend="on";rakuten_ts="1770870704764";</script><script type="text/javascript" src="https://xml.affiliate.rakuten.co.jp/widget/js/rakuten_widget.js?20230106"></script>
-            </div>
-        </div>
+<div class="preview-area">
+<div class="ad-top">
+<div style="margin:0 auto; width:300px; height:160px;">
+<script type="text/javascript">rakuten_design="slide";rakuten_affiliateId="1c99e670.cf181504.1c99e671.3773ee9b";rakuten_items="ctsmatch";rakuten_genreId="0";rakuten_size="300x160";rakuten_target="_blank";rakuten_theme="gray";rakuten_border="off";rakuten_auto_mode="on";rakuten_genre_title="off";rakuten_recommend="on";rakuten_ts="1770871840202";</script><script type="text/javascript" src="https://xml.affiliate.rakuten.co.jp/widget/js/rakuten_widget.js?20230106"></script>
+</div>
+</div>
 
-        <div id="capture-target">
-            <div class="header-container"><div class="header">家計簿Check!</div></div>
-            <div class="main-content">
-                <div id="preview-left"></div>
-                <div id="preview-right"></div>
-            </div>
-        </div>
-        <button class="save-btn" onclick="startProcess()">画像を保存する</button>
-    </div>
+<div id="capture-target">
+<div class="header-container"><div class="header">家計簿Check!</div></div>
+<div class="main-content">
+<div id="preview-left"></div>
+<div id="preview-right"></div>
+</div>
+</div>
+<button class="save-btn" onclick="startProcess()">画像を保存する</button>
+</div>
 
-    <div class="editor" id="form-container">
-        <h3>家計簿データ入力</h3>
-        <div id="dynamic-inputs-top"></div>
-        <div class="ad-middle">
-            <div style="margin:0 auto; width:300px; height:250px;">
-                <script type="text/javascript">rakuten_design="slide";rakuten_affiliateId="1c99e670.cf181504.1c99e671.3773ee9b";rakuten_items="ctsmatch";rakuten_genreId="0";rakuten_size="300x250";rakuten_target="_blank";rakuten_theme="gray";rakuten_border="off";rakuten_auto_mode="on";rakuten_genre_title="off";rakuten_recommend="on";rakuten_ts="1770870517863";</script><script type="text/javascript" src="https://xml.affiliate.rakuten.co.jp/widget/js/rakuten_widget.js?20230106"></script>
-            </div>
-        </div>
-        <div id="dynamic-inputs-bottom"></div>
-    </div>
+<div class="editor" id="form-container">
+<h3>家計簿データ入力</h3>
+<div id="dynamic-inputs-top"></div>
+<div class="ad-middle">
+<div style="margin:0 auto; width:300px; height:250px;">
+<script type="text/javascript">rakuten_design="slide";rakuten_affiliateId="1c99e670.cf181504.1c99e671.3773ee9b";rakuten_items="ctsmatch";rakuten_genreId="0";rakuten_size="300x250";rakuten_target="_blank";rakuten_theme="gray";rakuten_border="off";rakuten_auto_mode="on";rakuten_genre_title="off";rakuten_recommend="on";rakuten_ts="1770870517863";</script><script type="text/javascript" src="https://xml.affiliate.rakuten.co.jp/widget/js/rakuten_widget.js?20230106"></script>
+</div>
+</div>
+<div id="dynamic-inputs-bottom"></div>
+</div>
 </div>
 
 <script>
-    const sections = [
-        { side: 'left', title: "●月間収入", prefix: "in", items: ["パパ", "ママ", "児童手当"], hasTotal: true },
-        { side: 'left', title: "●月間支出", prefix: "ex", items: ["住居費", "教育費", "保険料", "水道・光熱費", "通信費", "車費", "パパお小遣い", "ママお小遣い", "食費", "日用品費", "レジャー費", "その他"], hasTotal: true, highlight: true },
-        { side: 'left', title: "●月間貯蓄", prefix: "sv", items: ["普通貯蓄", "NISA", "積立保険", "確定拠出年金"], hasTotal: false },
-        { side: 'right', title: "●ボーナス(年間)", prefix: "bn", items: ["パパ", "ママ"], hasTotal: true },
-        { side: 'right', title: "●年単位の支出", prefix: "yr", items: ["旅行・帰省など", "固定資産税", "保険料", "車検代"], hasTotal: true, highlight: true },
-        { side: 'right', title: "●現在の総資産", prefix: "as", items: ["普通貯蓄", "NISA", "外貨保険(一括)", "外貨保険(積立)", "ジュニアNISA", "確定拠出年金"], hasTotal: false }
-    ];
+const sections = [
+{ side: 'left', title: "●月間収入", prefix: "in", items: ["パパ", "ママ", "児童手当"], hasTotal: true },
+{ side: 'left', title: "●月間支出", prefix: "ex", items: ["住居費", "教育費", "保険料", "水道・光熱費", "通信費", "車費", "パパお小遣い", "ママお小遣い", "食費", "日用品費", "レジャー費", "その他"], hasTotal: true, highlight: true },
+{ side: 'left', title: "●月間貯蓄", prefix: "sv", items: ["普通貯蓄", "NISA", "積立保険", "確定拠出年金"], hasTotal: false },
+{ side: 'right', title: "●ボーナス(年間)", prefix: "bn", items: ["パパ", "ママ"], hasTotal: true },
+{ side: 'right', title: "●年単位の支出", prefix: "yr", items: ["旅行・帰省など", "固定資産税", "保険料", "車検代"], hasTotal: true, highlight: true },
+{ side: 'right', title: "●現在の総資産", prefix: "as", items: ["普通貯蓄", "NISA", "外貨保険(一括)", "外貨保険(積立)", "ジュニアNISA", "確定拠出年金"], hasTotal: false }
+];
 
-    function init() {
-        const topContainer = document.getElementById('dynamic-inputs-top');
-        const bottomContainer = document.getElementById('dynamic-inputs-bottom');
-        sections.forEach((sec, index) => {
-            const secDiv = document.createElement('div');
-            secDiv.className = 'input-section';
-            secDiv.innerHTML = `<h4>${sec.title}</h4><div id="items-${sec.prefix}"></div>`;
-            if (index < 2) topContainer.appendChild(secDiv);
-            else bottomContainer.appendChild(secDiv);
-            const itemArea = secDiv.querySelector(`#items-${sec.prefix}`);
-            sec.items.forEach(label => {
-                const group = document.createElement('div');
-                group.className = 'input-group';
-                group.innerHTML = `<input type="text" class="label-edit" value="${label}" oninput="update()"><input type="number" class="val-input" data-prefix="${sec.prefix}" value="0" oninput="update()">`;
-                itemArea.appendChild(group);
-            });
-        });
-        update();
-    }
+function init() {
+const topContainer = document.getElementById('dynamic-inputs-top');
+const bottomContainer = document.getElementById('dynamic-inputs-bottom');
+sections.forEach((sec, index) => {
+const secDiv = document.createElement('div');
+secDiv.className = 'input-section';
+secDiv.innerHTML = `<h4>${sec.title}</h4><div id="items-${sec.prefix}"></div>`;
+if (index < 2) topContainer.appendChild(secDiv);
+else bottomContainer.appendChild(secDiv);
+const itemArea = secDiv.querySelector(`#items-${sec.prefix}`);
+sec.items.forEach(label => {
+const group = document.createElement('div');
+group.className = 'input-group';
+group.innerHTML = `<input type="text" class="label-edit" value="${label}" oninput="update()"><input type="number" class="val-input" data-prefix="${sec.prefix}" value="0" oninput="update()">`;
+itemArea.appendChild(group);
+});
+});
+update();
+}
 
-    function update() {
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        
-        // ✨ フォントサイズを完全固定（PC: 12px / スマホ: 9.5px）
-        let fontSize = isMobile ? 9.5 : 12;
+function update() {
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+let fontSize = isMobile ? 9.5 : 12;
 
-        ['left', 'right'].forEach(side => {
-            const previewContainer = document.getElementById(`preview-${side}`);
-            previewContainer.innerHTML = '';
-            sections.filter(s => s.side === side).forEach(sec => {
-                const groups = document.querySelectorAll(`#items-${sec.prefix} .input-group`);
-                let sectionHtml = `<div class="section-title" style="font-size: ${fontSize + 1}px;">${sec.title}</div>`;
-                let sum = 0, count = 0;
-                groups.forEach(group => {
-                    const label = group.querySelector('.label-edit').value;
-                    const val = Number(group.querySelector('.val-input').value) || 0;
-                    sum += val; count++;
-                    sectionHtml += `<div class="item" style="font-size: ${fontSize}px;">
-                        <span class="item-label">${label}</span>
-                        <span class="item-value">${val.toLocaleString()}</span>
-                        <span class="unit">円</span></div>`;
-                });
-                if (count > 0) {
-                    if(sec.hasTotal) sectionHtml += `<div class="total-box ${sec.highlight ? 'highlight' : ''}" style="font-size: ${fontSize}px;">合計 ${sum.toLocaleString()} 円</div>`;
-                    const div = document.createElement('div'); div.style.marginBottom = "6px"; div.innerHTML = sectionHtml;
-                    previewContainer.appendChild(div);
-                }
-            });
-        });
-    }
+['left', 'right'].forEach(side => {
+const previewContainer = document.getElementById(`preview-${side}`);
+previewContainer.innerHTML = '';
+sections.filter(s => s.side === side).forEach(sec => {
+const groups = document.querySelectorAll(`#items-${sec.prefix} .input-group`);
+let sectionHtml = `<div class="section-title" style="font-size: ${fontSize + 1}px;">${sec.title}</div>`;
+let sum = 0, count = 0;
+groups.forEach(group => {
+const label = group.querySelector('.label-edit').value;
+const val = Number(group.querySelector('.val-input').value) || 0;
+sum += val; count++;
+sectionHtml += `<div class="item" style="font-size: ${fontSize}px;">
+<span class="item-label">${label}</span>
+<span class="item-value">${val.toLocaleString()}</span>
+<span class="unit">円</span></div>`;
+});
+if (count > 0) {
+if(sec.hasTotal) sectionHtml += `<div class="total-box ${sec.highlight ? 'highlight' : ''}" style="font-size: ${fontSize}px;">合計 ${sum.toLocaleString()} 円</div>`;
+const div = document.createElement('div');
+div.style.marginBottom = isMobile ? "3px" : "6px";
+div.innerHTML = sectionHtml;
+previewContainer.appendChild(div);
+}
+});
+});
+}
 
-    function startProcess() {
-        document.getElementById('ad-overlay').style.display = 'flex';
-        let timeLeft = 3;
-        document.getElementById('wait-message').innerText = `画像を生成中です... (${timeLeft})`;
-        html2canvas(document.getElementById('capture-target'), { scale: 3, useCORS: true }).then(canvas => {
-            document.getElementById('download-link').href = canvas.toDataURL("image/png");
-            document.getElementById('download-link').download = 'kakeibo_check.png';
-        });
-        const timer = setInterval(() => {
-            timeLeft--;
-            document.getElementById('wait-message').innerText = `画像を生成中です... (${timeLeft})`;
-            if (timeLeft <= 0) { clearInterval(timer); document.getElementById('wait-message').innerText = "生成完了！"; document.getElementById('download-link').style.display = 'inline-block'; }
-        }, 1000);
-    }
-    function closeOverlay() { document.getElementById('ad-overlay').style.display = 'none'; }
-    window.onload = init;
+function startProcess() {
+document.getElementById('ad-overlay').style.display = 'flex';
+let timeLeft = 3;
+document.getElementById('wait-message').innerText = `画像を生成中です... (${timeLeft})`;
+html2canvas(document.getElementById('capture-target'), { scale: 3, useCORS: true }).then(canvas => {
+document.getElementById('download-link').href = canvas.toDataURL("image/png");
+document.getElementById('download-link').download = 'kakeibo_check.png';
+});
+const timer = setInterval(() => {
+timeLeft--;
+document.getElementById('wait-message').innerText = `画像を生成中です... (${timeLeft})`;
+if (timeLeft <= 0) { clearInterval(timer); document.getElementById('wait-message').innerText = "生成完了！"; document.getElementById('download-link').style.display = 'inline-block'; }
+}, 1000);
+}
+function closeOverlay() { document.getElementById('ad-overlay').style.display = 'none'; }
+window.onload = init;
 </script>
 </body>
 </html>
