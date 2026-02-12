@@ -28,7 +28,6 @@ input[type="number"] { flex: 1; padding: 8px; border: 1px solid #ccc; border-rad
 
 .preview-area { flex: 0 0 500px; position: sticky; top: 10px; height: fit-content; }
 
-/* ✨ 広告エリア2（プレビュー上部）の高さを160pxに合わせて拡張 */
 .ad-top { width: 100%; text-align: center; margin-bottom: 15px; min-height: 160px; }
 .ad-middle { margin: 30px 0; text-align: center; border-top: 1px solid #eee; padding-top: 20px; min-height: 250px; }
 
@@ -86,7 +85,7 @@ flex-direction: column; align-items: center; justify-content: center; text-align
 
 <div id="capture-target">
 <div class="header-container"><div class="header">家計簿Check!</div></div>
-<div class="main-content">
+<div class="main-content" id="main-content-area">
 <div id="preview-left"></div>
 <div id="preview-right"></div>
 </div>
@@ -140,18 +139,29 @@ function update() {
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 let fontSize = isMobile ? 9.5 : 12;
 
+const mainContent = document.getElementById('main-content-area');
+// スマホの時だけグリッドの間隔をさらに狭める
+mainContent.style.gap = isMobile ? "0 6px" : "0 12px";
+
 ['left', 'right'].forEach(side => {
 const previewContainer = document.getElementById(`preview-${side}`);
 previewContainer.innerHTML = '';
 sections.filter(s => s.side === side).forEach(sec => {
 const groups = document.querySelectorAll(`#items-${sec.prefix} .input-group`);
-let sectionHtml = `<div class="section-title" style="font-size: ${fontSize + 1}px;">${sec.title}</div>`;
+
+// スマホ時はタイトルの上下余白を極限まで削る
+const titleMargin = isMobile ? "1px 0 0 0" : "2px 0 1px 0";
+let sectionHtml = `<div class="section-title" style="font-size: ${fontSize + 1}px; margin: ${titleMargin};">${sec.title}</div>`;
+
 let sum = 0, count = 0;
 groups.forEach(group => {
 const label = group.querySelector('.label-edit').value;
 const val = Number(group.querySelector('.val-input').value) || 0;
 sum += val; count++;
-sectionHtml += `<div class="item" style="font-size: ${fontSize}px;">
+
+// スマホ時は行間を極限まで詰める
+const lineHt = isMobile ? "1.05" : "1.1";
+sectionHtml += `<div class="item" style="font-size: ${fontSize}px; line-height: ${lineHt};">
 <span class="item-label">${label}</span>
 <span class="item-value">${val.toLocaleString()}</span>
 <span class="unit">円</span></div>`;
@@ -159,7 +169,8 @@ sectionHtml += `<div class="item" style="font-size: ${fontSize}px;">
 if (count > 0) {
 if(sec.hasTotal) sectionHtml += `<div class="total-box ${sec.highlight ? 'highlight' : ''}" style="font-size: ${fontSize}px;">合計 ${sum.toLocaleString()} 円</div>`;
 const div = document.createElement('div');
-div.style.marginBottom = isMobile ? "3px" : "6px";
+// スマホ時はセクション下の余白も最小限に
+div.style.marginBottom = isMobile ? "2px" : "6px";
 div.innerHTML = sectionHtml;
 previewContainer.appendChild(div);
 }
